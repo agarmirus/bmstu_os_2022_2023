@@ -1,0 +1,155 @@
+020A:064C			loc_1:
+020A:064C  1E					push	ds
+020A:064D  50					push	ax
+020A:064E  B8 0040				mov	ax,40h
+020A:0651  8E D8				mov	ds,ax
+020A:0653  F7 06 0314 2400			test	word ptr ds:[314h],2400h	; (0040:0314=3200h)
+020A:0659  75 4F				jnz	loc_9			; Jump if not zero
+020A:065B  55					push	bp
+020A:065C  8B EC				mov	bp,sp
+020A:065E  8B 46 0A				mov	ax,[bp+0Ah]
+020A:0661  5D					pop	bp
+020A:0662  A9 0100				test	ax,100h
+020A:0665  75 43				jnz	loc_9			; Jump if not zero
+020A:0667  A9 0200				test	ax,200h
+020A:066A  74 22				jz	loc_5			; Jump if zero
+020A:066C  F0> 81 0E 0314 0200	           lock	or	word ptr ds:[314h],200h	; (0040:0314=3200h)
+020A:0673  F7 06 0314 0003			test	word ptr ds:[314h],3	; (0040:0314=3200h)
+020A:0679  75 2F				jnz	loc_9			; Jump if not zero
+020A:067B			loc_2:
+020A:067B  86 E0				xchg	ah,al
+020A:067D  FC					cld				; Clear direction
+020A:067E  A8 04				test	al,4
+020A:0680  75 25				jnz	loc_8			; Jump if not zero
+020A:0682			loc_3:
+020A:0682  A8 08				test	al,8
+020A:0684  75 11				jnz	loc_6			; Jump if not zero
+020A:0686  70 19				jo	loc_7			; Jump if overflow=1
+020A:0688			loc_4:
+020A:0688  9E					sahf				; Store ah into flags
+020A:0689  58					pop	ax
+020A:068A  1F					pop	ds
+020A:068B  CA 0002				retf	2			; Return far
+020A:068E			loc_5:
+020A:068E  F0> 81 26 0314 FDFF	           lock	and	word ptr ds:[314h],0FDFFh	; (020A:0314=3231h)
+020A:0695  EB E4				jmp	short loc_2		; (067B)
+020A:0697			loc_6:
+020A:0697  70 EF				jo	loc_4			; Jump if overflow=1
+020A:0699  50					push	ax
+020A:069A  B0 7F				mov	al,7Fh
+020A:069C  04 02				add	al,2
+020A:069E  58					pop	ax
+020A:069F  EB E7				jmp	short loc_4		; (0688)
+020A:06A1			loc_7:
+020A:06A1  50					push	ax
+020A:06A2  32 C0				xor	al,al			; Zero register
+020A:06A4  58					pop	ax
+020A:06A5  EB E1				jmp	short loc_4		; (0688)
+020A:06A7			loc_8:
+020A:06A7  FD					std				; Set direction flag
+020A:06A8  EB D8				jmp	short loc_3		; (0682)
+020A:06AA			loc_9:
+020A:06AA  58					pop	ax
+020A:06AB  1F					pop	ds
+020A:06AC  CF					iret				; Interrupt return
+020A:06AD  EB 9D				jmp	short loc_1		; (064C)
+020A:06AF  C4					db	0C4h
+020A:06B0  C4 72 EB				les	si,dword ptr [bp+si-15h]	; Load 32 bit ptr
+     iret.lst						 Sourcer Listing v3.07    11-Sep-22   5:19 am   Page 2
+
+020A:06B3  98					cbw				; Convrt byte to word
+020A:06B4  C4					db	0C4h
+020A:06B5  C4 72 EB				les	si,dword ptr [bp+si-15h]	; Load 32 bit ptr
+020A:06B8  93					xchg	ax,bx
+020A:06B9  E8 011D				call	$+120h
+020A:06BC  50					push	ax
+020A:06BD  53					push	bx
+020A:06BE  51					push	cx
+020A:06BF  52					push	dx
+020A:06C0  1E					push	ds
+020A:06C1  B8 0040				mov	ax,40h
+020A:06C4  8E D8				mov	ds,ax
+020A:06C6  80 3E 0100 01			cmp	byte ptr ds:[100h],1	; (0040:0100=0)
+020A:06CB  74 5A				je	loc_15			; Jump if equal
+020A:06CD  C6 06 0100 01			mov	byte ptr ds:[100h],1	; (0040:0100=0)
+020A:06D2  8A 2E 004A				mov	ch,byte ptr ds:[4Ah]	; (0040:004A=50h)
+020A:06D6  8A 0E 0084				mov	cl,byte ptr ds:[84h]	; (0040:0084=18h)
+020A:06DA  8A 3E 0062				mov	bh,byte ptr ds:[62h]	; (0040:0062=0)
+020A:06DE  E8 004E				call	sub_1			; (072F)
+020A:06E1  51					push	cx
+020A:06E2  B4 03				mov	ah,3
+020A:06E4  CD 10				int	10h			; Video display   ah=functn 03h
+										;  get cursor loc in dx, mode cx
+020A:06E6  59					pop	cx
+020A:06E7  52					push	dx
+020A:06E8  32 F6				xor	dh,dh			; Zero register
+020A:06EA			loc_10:
+020A:06EA  32 D2				xor	dl,dl			; Zero register
+020A:06EC			loc_11:
+020A:06EC  52					push	dx
+020A:06ED  B4 02				mov	ah,2
+020A:06EF  CD 10				int	10h			; Video display   ah=functn 02h
+										;  set cursor location in dx
+020A:06F1  B4 08				mov	ah,8
+020A:06F3  CD 10				int	10h			; Video display   ah=functn 08h
+										;  get char al & attrib ah @curs
+020A:06F5  0A C0				or	al,al			; Zero ?
+020A:06F7  75 02				jnz	loc_12			; Jump if not zero
+020A:06F9  B0 20				mov	al,20h			; ' '
+020A:06FB			loc_12:
+020A:06FB  33 D2				xor	dx,dx			; Zero register
+020A:06FD  32 E4				xor	ah,ah			; Zero register
+020A:06FF  CD 17				int	17h			; Printer  dx=prn1, ah=func 00h
+										;  print char in al
+020A:0701  5A					pop	dx
+020A:0702  80 E4 25				and	ah,25h			; '%'
+020A:0705  74 07				jz	loc_13			; Jump if zero
+020A:0707  C6 06 0100 FF			mov	byte ptr ds:[100h],0FFh	; (0040:0100=0)
+020A:070C  EB 14				jmp	short loc_14		; (0722)
+020A:070E			loc_13:
+020A:070E  FE C2				inc	dl
+020A:0710  3A D5				cmp	dl,ch
+020A:0712  72 D8				jb	loc_11			; Jump if below
+020A:0714  E8 0018				call	sub_1			; (072F)
+020A:0717  FE C6				inc	dh
+020A:0719  3A F1				cmp	dh,cl
+020A:071B  76 CD				jbe	loc_10			; Jump if below or =
+     iret.lst						 Sourcer Listing v3.07    11-Sep-22   5:19 am   Page 3
+
+020A:071D  C6 06 0100 00			mov	byte ptr ds:[100h],0	; (0040:0100=0)
+020A:0722			loc_14:
+020A:0722  5A					pop	dx
+020A:0723  B4 02				mov	ah,2
+020A:0725  CD 10				int	10h			; Video display   ah=functn 02h
+										;  set cursor location in dx
+020A:0727			loc_15:
+020A:0727  1F					pop	ds
+020A:0728  5A					pop	dx
+020A:0729  59					pop	cx
+020A:072A  5B					pop	bx
+020A:072B  58					pop	ax
+020A:072C  E9 FF1D				jmp	loc_1			; (064C)
+  
+				;��������������������������������������������������������������������������
+				;			       SUBROUTINE
+				;��������������������������������������������������������������������������
+  
+				sub_1		proc	near
+020A:072F  52					push	dx
+020A:0730  33 D2				xor	dx,dx			; Zero register
+020A:0732  B8 000D				mov	ax,0Dh
+020A:0735  CD 17				int	17h			; Printer  dx=prn1, ah=func 00h
+										;  print char in al
+020A:0737  33 D2				xor	dx,dx			; Zero register
+020A:0739  B8 000A				mov	ax,0Ah
+020A:073C  CD 17				int	17h			; Printer  dx=prn1, ah=func 00h
+										;  print char in al
+020A:073E  5A					pop	dx
+020A:073F  C3					retn
+				sub_1		endp
+  
+020A:0740  C4					db	0C4h
+020A:0741  C4 06 06E9				les	ax,dword ptr ds:[6E9h]	; (020A:06E9=32F6h) Load 32 bit ptr
+020A:0745  FF					db	0FFh
+020A:0746  E8 0070				call	$+73h
+  
