@@ -127,7 +127,6 @@
 	\newline
 	\newline
 	\noindent\rule{\textwidth}{3pt}
-	\newline
 
 	\noindent
  	\small ФАКУЛЬТЕТ {\bf <<ИНФОРМАТИКА И СИСТЕМЫ УПРАВЛЕНИЯ>>}\\
@@ -149,23 +148,22 @@
 	
 	\vspace{2cm}
 	
-	\noindent {\bf Название:} Дизассемблирование INT 8h
+	\noindent {\bf Название:} \underline{Дизассемблирование INT 8h}
 	
 	\bigbreak
 	
-	\noindent {\bf Дисциплина:} Операционные системы
+	\noindent {\bf Дисциплина:} \underline{Операционные системы}
 	
 	\vspace{2cm}
 	
 	\noindent
 	\begin{center}
 		\begin{tabularx}{\linewidth}{XXXX}
-			\bf Студент &&& Царев А.А.\\
+			\bf Студент &&& \underline{Царев А.А.}\\
 			&&&\\
-			\bf Группа &&& ИУ7-53Б\\
+			\bf Группа &&& \underline{ИУ7-53Б}\\
 			&&&\\
-			&&&\\
-			\bf Преподаватель &&& Рязанова Н.Ю.\\
+			\bf Преподаватель &&& \underline{Рязанова Н.Ю.}\\
 		\end{tabularx}
 	
 		\vfill
@@ -213,11 +211,11 @@
 		020A:0752  33 C0				xor	ax,ax			; Zero register
 		020A:0754  8E C0				mov	es,ax
 		
-		; Увеличение младших 2 байт счетчика реального времени на единицу
+		; Инкремент младших 2 байт счетчика реального времени
 		020A:0756  FF 06 006C				inc	word ptr ds:[6Ch]	; (0040:006C=124Dh)
 		020A:075A  75 04				jnz	loc_16			; Jump if not zero
 		
-		; Увеличение старших 2 байт счетчика реального времени на единицу
+		; Инкремент старших 2 байт счетчика реального времени
 		020A:075C  FF 06 006E				inc	word ptr ds:[6Eh]	; (0040:006E=3)
 		
 		; Проверка на то, что прошло 24 часа
@@ -227,12 +225,12 @@
 		020A:0767  81 3E 006C 00B0			cmp	word ptr ds:[6Ch],0B0h	; (0040:006C=124Dh)
 		020A:076D  75 0D				jne	loc_17			; Jump if not equal
 		
-		; Если прошло 24 часа, то счетчик обнуляется и устанавливается единица по адресу 0040:0070
+		; Если прошло 24 часа, то счетчик обнуляется, и устанавливается единица по адресу 0040:0070
 		020A:076F  A3 006E				mov	word ptr ds:[6Eh],ax	; (0040:006E=3)
 		020A:0772  A3 006C				mov	word ptr ds:[6Ch],ax	; (0040:006C=124Dh)
 		020A:0775  C6 06 0070 01			mov	byte ptr ds:[70h],1	; (0040:0070=0)
 		
-		; Запись 8 в AL
+		; Запись значения 8 в AL
 		020A:077A  0C 08				or	al,8
 		
 		020A:077C			loc_17:
@@ -240,7 +238,7 @@
 		; Сохранение регистра AX в стеке
 		020A:077C  50					push	ax
 		
-		; Уменьшаем на единицу значение счетчика времени, оставшегося до выключения моторчика
+		; Декремент счетчика времени до выключения моторчика
 		; Сам счетчик находится по адресу 0040:0040
 		020A:077D  FE 0E 0040				dec	byte ptr ds:[40h]	; (0040:0040=43h)
 		020A:0781  75 0B				jnz	loc_18			; Jump if not zero
@@ -347,7 +345,7 @@
 		
 		020A:07D5			loc_22:
 		
-		; Если установлен хотя бы один из флагов DF или IOPL, то происходит сброс флага IF
+		; Если установлен хотя бы DF или старший бит IOPL, то происходит сброс флага IF
 		020A:07D5  FA					cli				; Disable interrupts
 		020A:07D6  EB F8				jmp	short loc_21		; (07D0)
 		020A:07D8			loc_23:
@@ -359,15 +357,9 @@
 	
 	\pagebreak
 	
-	\section{Схемы алгоритмов}
+	\section*{Схемы алгоритмов}
 	
-	\subsection{Схема алгоритма INT 8h}
-	
-	\begin{minipage}{0.9\linewidth}
-		\includegraphics[width=\linewidth]{diagram1_1}
-	\end{minipage}
-
-	\pagebreak
+	\subsection*{Схема алгоритма INT 8h}
 	
 	\begin{minipage}{0.9\linewidth}
 		\includegraphics[width=\linewidth]{diagram1_1}
@@ -375,7 +367,13 @@
 
 	\pagebreak
 	
-	\subsection{Схема алгоритма процедуры sub\_2}
+	\begin{minipage}{0.9\linewidth}
+		\includegraphics[width=\linewidth]{diagram1_2}
+	\end{minipage}
+
+	\pagebreak
+	
+	\subsection*{Схема алгоритма процедуры sub\_2}
 	
 	\bigbreak
 	
@@ -385,7 +383,7 @@
 	
 	\pagebreak
 	
-	\section{Вывод}
+	\section*{Вывод}
 	
 	Во время выполнения данной лабораторной работы я познакомился со средством дизассемблирования – sourcer и с получением дизассемблерного кода ядра операционной системы Windows на примере обработчика прерывания Int 8h в virtual mode – специальном режиме защищенного режима, который эмулирует реальный режим работы вычислительной системы на базе процессоров Intel.
 	
