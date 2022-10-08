@@ -5,8 +5,6 @@
 
 #define CHILD_PROCESSES_COUNT 2
 
-#define SLEEPING_TIME 1
-
 int main(void)
 {
     int child_pids[CHILD_PROCESSES_COUNT] = {0};
@@ -17,7 +15,7 @@ int main(void)
 
         if (new_pid == -1)
         {
-            printf("Can't fork\n");
+            printf("Аварийное завершение fork\n");
 
             return EXIT_FAILURE;
         }
@@ -27,7 +25,7 @@ int main(void)
             int ppid = getppid();
             int pgid = getpgrp();
 
-            printf("Child process: ID: %d, Parent ID: %d, Group ID: %d\n", pid, ppid, pgid);
+            printf("Дочерний процесс: ID: %d, ID предка: %d, ID группы: %d\n", pid, ppid, pgid);
 
             return EXIT_SUCCESS;
         }
@@ -39,21 +37,21 @@ int main(void)
             child_pids[i] = child_pid;
 
             if (WIFEXITED(stat_val))
-                printf("Child process (ID %d) finished with code %d\n", child_pid, WEXITSTATUS(stat_val));
+                printf("Дочерний процесс (ID %d) завершил свою работу (код завершения: %d)\n", child_pid, WEXITSTATUS(stat_val));
             else if (WIFSIGNALED(stat_val))
-                printf("Child process (ID %d) finished by signal %d\n", child_pid, WTERMSIG(stat_val));
+                printf("Дочерний процесс (ID %d) завершился неперехватываемым сигналом (номер сигнала: %d)\n", child_pid, WTERMSIG(stat_val));
             else if (WIFSTOPPED(stat_val))
-                printf("Child process (ID %d) stopped by signal %d\n", child_pid, WSTOPSIG(stat_val));
+                printf("Дочерний процесс (ID %d) остановился (номер сигнала: %d)\n", child_pid, WSTOPSIG(stat_val));
         }
     }
 
     int pid = getpid();
     int pgid = getpgrp();
 
-    printf("Parent process: ID: %d, Group ID: %d, ", pid, pgid);
-    printf("Child processes IDs: ");
+    printf("Родительский процесс: ID: %d, Group ID: %d, ", pid, pgid);
+    printf("ID дочерних процессов: ");
 
-    for (size_t i = 0; i < len; ++i)
+    for (size_t i = 0; i < CHILD_PROCESSES_COUNT; ++i)
         printf("%d ", child_pids[i]);
 
     printf("\n");
