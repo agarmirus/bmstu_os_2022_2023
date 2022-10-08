@@ -6,16 +6,6 @@
 
 #define SLEEPING_TIME 2
 
-static void print_child_pids(const int child_pids[], const size_t len)
-{
-    printf("Child processes IDs: ");
-
-    for (size_t i = 0; i < len; ++i)
-        printf("%d, ", child_pids[i]);
-
-    printf("\n");
-}
-
 int main(void)
 {
     int child_pids[CHILD_PROCESSES_COUNT] = {0};
@@ -50,7 +40,12 @@ int main(void)
     int pgid = getpgrp();
 
     printf("Parent process: ID: %d, Group ID: %d, ", pid, pgid);
-    print_child_pids(child_pids, CHILD_PROCESSES_COUNT);
+    printf("Child processes IDs: ");
+
+    for (size_t i = 0; i < len; ++i)
+        printf("%d, ", child_pids[i]);
+
+    printf("\n");
 
     return EXIT_SUCCESS;
 }
