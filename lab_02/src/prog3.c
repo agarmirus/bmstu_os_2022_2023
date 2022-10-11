@@ -21,17 +21,13 @@ int main(void)
         }
         else if (new_pid == 0)
         {
-            int pid = getpid();
-            int ppid = getppid();
-            int pgid = getpgrp();
-
-            printf("Дочерний процесс: ID: %d, ID предка: %d, ID группы: %d\n", pid, ppid, pgid);
+            printf("Дочерний процесс: ID: %d, ID предка: %d, ID группы: %d\n", getpid(), getppid(), getpgrp());
             
             int rc = 0;
 
             if (i == 0)
                 rc = execl("/home/agarmir/Univer/aa/lab/lab_03/app.exe", "");
-            else
+            else if (i == 1)
                 rc = execl("/home/agarmir/Univer/cprog/lab_03_06_00/main.exe", "");
 
             if (rc == -1)
@@ -59,10 +55,7 @@ int main(void)
         }
     }
 
-    int pid = getpid();
-    int pgid = getpgrp();
-
-    printf("Родительский процесс: ID: %d, Group ID: %d, ", pid, pgid);
+    printf("Родительский процесс: ID: %d, Group ID: %d, ", getpid(), getpgrp());
     printf("ID дочерних процессов: ");
 
     for (size_t i = 0; i < CHILD_PROCESSES_COUNT; ++i)

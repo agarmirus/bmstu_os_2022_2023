@@ -21,11 +21,7 @@ int main(void)
         }
         else if (new_pid == 0)
         {
-            int pid = getpid();
-            int ppid = getppid();
-            int pgid = getpgrp();
-
-            printf("Дочерний процесс: ID: %d, ID предка: %d, ID группы: %d\n", pid, ppid, pgid);
+            printf("Дочерний процесс: ID: %d, ID предка: %d, ID группы: %d\n", getpid(), getppid(), getpgrp());
 
             return EXIT_SUCCESS;
         }
@@ -45,10 +41,7 @@ int main(void)
         }
     }
 
-    int pid = getpid();
-    int pgid = getpgrp();
-
-    printf("Родительский процесс: ID: %d, Group ID: %d, ", pid, pgid);
+    printf("Родительский процесс: ID: %d, Group ID: %d, ", getpid(), getpgrp());
     printf("ID дочерних процессов: ");
 
     for (size_t i = 0; i < CHILD_PROCESSES_COUNT; ++i)
