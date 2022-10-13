@@ -1,3 +1,6 @@
 *.log
 *.aux
 *.synctex.gz
+*.exe
+*.o
+*.dvi
