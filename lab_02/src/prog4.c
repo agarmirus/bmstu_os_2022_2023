@@ -19,15 +19,15 @@ int main(void)
 
     for (size_t i = 0; i < CHILD_PROCESSES_COUNT; ++i)
     {
-        int new_pid = fork();
+        int child_pid = fork();
 
-        if (new_pid == -1)
+        if (child_pid == -1)
         {
             printf("Аварийное завершение fork\n");
 
-            return EXIT_FAILURE;
+            exit(1);
         }
-        else if (new_pid == 0)
+        else if (child_pid == 0)
         {
             printf("Дочерний процесс: ID: %d, ID предка: %d, ID группы: %d\n", getpid(), getppid(), getpgrp());
 
@@ -58,32 +58,36 @@ int main(void)
         }
         else
         {
-            int stat_val = 0;
-            int child_pid = wait(&stat_val);
-
             child_pids[i] = child_pid;
+
+            int stat_val = 0;
+
+            waitpid(child_pid, &stat_val, 0);
 
             if (WIFEXITED(stat_val))
                 printf("Дочерний процесс (ID %d) завершил свою работу (код завершения: %d)\n", child_pid, WEXITSTATUS(stat_val));
             else if (WIFSIGNALED(stat_val))
-                printf("Дочерний процесс (ID %d) завершился неперехватываемым сигналом (номер сигнала: %d)\n", child_pid, WTERMSIG(stat_val));
+                printf("Дочерний процесс (ID %d) завершился: получен сигнал %d\n", child_pid, WTERMSIG(stat_val));
             else if (WIFSTOPPED(stat_val))
-                printf("Дочерний процесс (ID %d) остановился (номер сигнала: %d)\n", child_pid, WSTOPSIG(stat_val));
+                printf("Дочерний процесс (ID %d) остановился: получен сигнал %d\n", child_pid, WSTOPSIG(stat_val));
+            
+            if (i == CHILD_PROCESSES_COUNT - 1)
+            {
+                printf("Родительский процесс: ID: %d, Group ID: %d, ", getpid(), getpgrp());
+                printf("ID дочерних процессов: ");
+
+                for (size_t i = 0; i < CHILD_PROCESSES_COUNT; ++i)
+                    printf("%d ", child_pids[i]);
+
+                printf("\n");
+
+                close(fd[1]);
+                read(fd[0], buf, BUF_SIZE);
+
+                printf("Сообщения, полученные от дочерних процессов:\n%s\n", buf);
+            }
         }
     }
-
-    printf("Родительский процесс: ID: %d, Group ID: %d, ", getpid(), getpgrp());
-    printf("ID дочерних процессов: ");
-
-    for (size_t i = 0; i < CHILD_PROCESSES_COUNT; ++i)
-        printf("%d ", child_pids[i]);
-
-    printf("\n");
-
-    close(fd[1]);
-    read(fd[0], buf, BUF_SIZE);
-
-    printf("Сообщения, полученные от дочерних процессов:\n%s\n", buf);
 
     return EXIT_SUCCESS;
 }
