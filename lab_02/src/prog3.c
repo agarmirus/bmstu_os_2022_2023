@@ -41,7 +41,7 @@ int main(void)
         }
         else
         {
-            child_pids[i] = new_pid;
+            child_pids[i] = child_pid;
 
             int stat_val = 0;
             

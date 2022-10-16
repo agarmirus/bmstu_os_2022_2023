@@ -5,6 +5,8 @@
 
 #define CHILD_PROCESSES_COUNT 2
 
+#define SLEEP_TIME 5
+
 int main(void)
 {
     int child_pids[CHILD_PROCESSES_COUNT] = {0};
@@ -22,6 +24,8 @@ int main(void)
         else if (child_pid == 0)
         {
             printf("Дочерний процесс: ID: %d, ID предка: %d, ID группы: %d\n", getpid(), getppid(), getpgrp());
+
+            sleep(SLEEP_TIME);
 
             return EXIT_SUCCESS;
         }
