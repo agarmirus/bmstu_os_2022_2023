@@ -9,8 +9,6 @@
 
 int main(void)
 {
-    int child_pids[CHILD_PROCESSES_COUNT] = {0};
-
     for (size_t i = 0; i < CHILD_PROCESSES_COUNT; ++i)
     {
         int child_pid = fork();
@@ -31,8 +29,6 @@ int main(void)
         }
         else
         {
-            child_pids[i] = child_pid;
-
             int stat_val = 0;
             
             waitpid(child_pid, &stat_val, 0);
@@ -44,16 +40,7 @@ int main(void)
             else if (WIFSTOPPED(stat_val))
                 printf("Дочерний процесс (ID %d) остановился: получен сигнал %d\n", child_pid, WSTOPSIG(stat_val));
             
-            if (i == CHILD_PROCESSES_COUNT - 1)
-            {
-                printf("Родительский процесс: ID: %d, Group ID: %d, ", getpid(), getpgrp());
-                printf("ID дочерних процессов: ");
-
-                for (size_t i = 0; i < CHILD_PROCESSES_COUNT; ++i)
-                    printf("%d ", child_pids[i]);
-
-                printf("\n");
-            }
+            printf("Родительский процесс: ID: %d, Group ID: %d, ID дочернего процесса: %d\n", getpid(), getpgrp(), child_pid);
         }
     }
 

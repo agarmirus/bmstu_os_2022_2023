@@ -1,5 +1,3 @@
-// Продемонстрировать завершение чайлда SIGTERM'ом
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -89,8 +87,6 @@ int main(void)
         }
         else
         {
-            child_pids[i] = child_pid;
-
             int stat_val = 0;
 
             waitpid(child_pid, &stat_val, 0);
@@ -103,22 +99,13 @@ int main(void)
                 printf("Дочерний процесс (ID %d) остановился: получен сигнал %d\n", child_pid, WSTOPSIG(stat_val));
             
             mode = NONE;
-            
-            if (i == CHILD_PROCESSES_COUNT - 1)
-            {
-                printf("Родительский процесс: ID: %d, Group ID: %d, ", getpid(), getpgrp());
-                printf("ID дочерних процессов: ");
 
-                for (size_t i = 0; i < CHILD_PROCESSES_COUNT; ++i)
-                    printf("%d ", child_pids[i]);
+            printf("Родительский процесс: ID: %d, Group ID: %d, ID дочернего процесса: %d\n", getpid(), getpgrp(), child_pid);
 
-                printf("\n");
+            close(fd[1]);
+            read(fd[0], buf, BUF_SIZE);
 
-                close(fd[1]);
-                read(fd[0], buf, BUF_SIZE);
-
-                printf("Сообщения, полученные от дочерних процессов:\n%s\n", buf);
-            }
+            printf("Сообщения, полученные от дочерних процессов:\n%s\n", buf);
         }
     }
 
