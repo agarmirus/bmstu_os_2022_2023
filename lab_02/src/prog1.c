@@ -4,7 +4,7 @@
 
 #define CHILD_PROCESSES_COUNT 2
 
-#define SLEEP_TIME 2
+#define SLEEP_TIME 1
 
 int main(void)
 {
@@ -29,7 +29,7 @@ int main(void)
             return EXIT_SUCCESS;
         }
         else
-            printf("Родительский процесс: ID: %d, Group ID: %d, ID дочернего процесса: %d\n", getpid(), getpgrp(), child_pid);
+            printf("Родительский процесс: ID: %d, Group ID: %d, ID дочернего процесса\n", getpid(), getpgrp(), child_pid);
     }
 
     return EXIT_SUCCESS;

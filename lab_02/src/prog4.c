@@ -6,9 +6,9 @@
 
 #define CHILD_PROCESSES_COUNT 2
 
-#define SLEEP_TIME 3
+#define SLEEP_TIME 5
 
-#define BUF_SIZE 750
+#define MAX_MSG_SIZE 50
 
 int main(void)
 {
@@ -21,24 +21,9 @@ int main(void)
         exit(1);
     }
 
-    char buf[BUF_SIZE];
+    int child_pids[CHILD_PROCESSES_COUNT] = {0};
 
-    const char *msgs[CHILD_PROCESSES_COUNT] = {
-        "\n№1\nНочь, улица, фонарь, аптека,\n" \
-        "Бессмысленный и тусклый свет.\n" \
-        "Живи еще хоть четверть века -\n" \
-        "Все будет так. Исхода нет.\n\n",
-
-        "\n№2\nЯ УВОЖУ К ОТВЕРЖЕННЫМ СЕЛЕНЬЯМ,\n" \
-        "Я УВОЖУ СКВОЗЬ ВЕКОВЕЧНЫЙ СТОН,\n" \
-        "Я УВОЖУ К ПОГИБШИМ ПОКОЛЕНЬЯМ.\n\n" \
-        "БЫЛ ПРАВДОЮ МОЙ ЗОДЧИЙ ВДОХНОВЛЕН:\n" \
-        "Я ВЫСШЕЙ СИЛОЙ, ПОЛНОТОЙ ВСЕЗНАНЬЯ\n" \
-        "И ПЕРВОЮ ЛЮБОВЬЮ СОТВОРЕН.\n\n" \
-        "ДРЕВНЕЙ МЕНЯ ЛИШЬ ВЕЧНЫЕ СОЗДАНЬЯ,\n" \
-        "И С ВЕЧНОСТЬЮ ПРЕБУДУ НАРАВНЕ.\n" \
-        "ВХОДЯЩИЕ, ОСТАВЬТЕ УПОВАНЬЯ.\n"
-    };
+    char msg[MAX_MSG_SIZE] = {0};
 
     for (size_t i = 0; i < CHILD_PROCESSES_COUNT; ++i)
     {
@@ -56,34 +41,49 @@ int main(void)
 
             sleep(SLEEP_TIME);
 
-            close(fd[0]);
-            write(fd[1], msgs[i], strlen(msgs[i]) - 1);
+            if (i == 0)
+                memcpy(msg, "\nabc\n", 6);
+            else if (i == 1)
+                memcpy(msg, "\njshaflkdhgjshflkajhskja\n", 26);
 
-            printf("Сообщение №%d отправлено родительскому процессу:\n%s\n", i + 1, msgs[i]);
+            close(fd[0]);
+            write(fd[1], msg, strlen(msg));
+
+            printf("Сообщение от дочернего процесса (ID %d) отправлено родительскому процессу:\n%s\n", getpid(), msg);
 
             return EXIT_SUCCESS;
         }
         else
         {
-            int stat_val = 0;
+            child_pids[i] = child_pid;
 
-            waitpid(child_pid, &stat_val, 0);
-
-            if (WIFEXITED(stat_val))
-                printf("Дочерний процесс (ID %d) завершил свою работу (код завершения: %d)\n", child_pid, WEXITSTATUS(stat_val));
-            else if (WIFSIGNALED(stat_val))
-                printf("Дочерний процесс (ID %d) завершился: получен сигнал %d\n", child_pid, WTERMSIG(stat_val));
-            else if (WIFSTOPPED(stat_val))
-                printf("Дочерний процесс (ID %d) остановился: получен сигнал %d\n", child_pid, WSTOPSIG(stat_val));
-            
-            printf("Родительский процесс: ID: %d, Group ID: %d, ID дочернего процесса: %d\n", getpid(), getpgrp(), child_pid);
-
-            close(fd[1]);
-            read(fd[0], buf, BUF_SIZE);
-
-            printf("Сообщения, полученные от дочерних процессов:\n%s\n", buf);
+            printf("\nРодительский процесс: ID: %d, Group ID: %d, ID дочернего процесса: %d\n", getpid(), getpgrp(), child_pid);
         }
     }
+
+    for (size_t i = 0; i < CHILD_PROCESSES_COUNT; ++i)
+    {
+        int stat_val = 0;
+            
+        if (waitpid(child_pids[i], &stat_val, 0) == -1)
+        {
+            printf("Аварийное завершение waitpid\n");
+
+            exit(1);
+        }
+
+        if (WIFEXITED(stat_val))
+            printf("Дочерний процесс (ID %d) завершил свою работу (код завершения: %d)\n", child_pids[i], WEXITSTATUS(stat_val));
+        else if (WIFSIGNALED(stat_val))
+            printf("Дочерний процесс (ID %d) завершился: получен сигнал %d\n", child_pids[i], WTERMSIG(stat_val));
+        else if (WIFSTOPPED(stat_val))
+            printf("Дочерний процесс (ID %d) остановился: получен сигнал %d\n", child_pids[i], WSTOPSIG(stat_val));
+    }
+
+    close(fd[1]);
+    read(fd[0], msg, MAX_MSG_SIZE);
+
+    printf("Сообщения, полученные от дочерних процессов:\n%s\n", msg);
 
     return EXIT_SUCCESS;
 }
