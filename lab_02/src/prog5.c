@@ -35,9 +35,9 @@ int main(void)
         exit(1);
     }
 
-    int child_pids[CHILD_PROCESSES_COUNT] = {0};
+    int child_pids[CHILD_PROCESSES_COUNT];
 
-    char msg[MAX_MSG_SIZE] = {0};
+    char msg[MAX_MSG_SIZE];
 
     for (size_t i = 0; i < CHILD_PROCESSES_COUNT; ++i)
     {

@@ -7,7 +7,7 @@
 
 int main(void)
 {
-    int child_pids[CHILD_PROCESSES_COUNT] = {0};
+    int child_pids[CHILD_PROCESSES_COUNT];
 
     for (size_t i = 0; i < CHILD_PROCESSES_COUNT; ++i)
     {
