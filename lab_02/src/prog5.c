@@ -7,7 +7,7 @@
 
 #define CHILD_PROCESSES_COUNT 2
 
-#define SLEEP_TIME 10
+#define SLEEP_TIME 5
 
 #define MAX_MSG_SIZE 50
 
@@ -26,6 +26,8 @@ void my_handler(int sign_numb)
 
 int main(void)
 {
+    signal(SIGINT, SIG_IGN);
+
     int fd[2];
 
     if (pipe(fd) == -1)
@@ -49,7 +51,7 @@ int main(void)
         }
         else if (child_pids[i] == 0)
         {
-            signal(SIGTERM, my_handler);
+            signal(SIGINT, my_handler);
 
             printf("Дочерний процесс: ID: %d, ID предка: %d, ID группы: %d\n", getpid(), getppid(), getpgrp());
 

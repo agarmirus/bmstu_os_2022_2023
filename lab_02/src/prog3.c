@@ -13,7 +13,7 @@ int main(void)
     {
         if ((child_pids[i] = fork()) == -1)
         {
-            printf("Аварийное завершение fork\n");
+            perror("Аварийное завершение fork\n");
 
             exit(1);
         }
@@ -21,7 +21,7 @@ int main(void)
         {
             printf("Дочерний процесс: ID: %d, ID предка: %d, ID группы: %d\n", getpid(), getppid(), getpgrp());
             
-            int rc = 0;
+            pid_t rc = 0;
 
             if (i == 0)
                 rc = execl("/home/agarmir/Univer/aa/lab/lab_03/app.exe", "");
@@ -47,7 +47,7 @@ int main(void)
             
         if (waitpid(child_pids[i], &stat_val, 0) == -1)
         {
-            printf("Аварийное завершение waitpid\n");
+            perror("Аварийное завершение waitpid\n");
 
             exit(1);
         }

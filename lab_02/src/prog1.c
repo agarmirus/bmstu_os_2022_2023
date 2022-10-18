@@ -14,7 +14,7 @@ int main(void)
     {
         if ((child_pids[i] = fork()) == -1)
         {
-            printf("Аварийное завершение fork\n");
+            perror("Аварийное завершение fork\n");
 
             exit(1);
         }

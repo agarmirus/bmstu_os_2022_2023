@@ -5,8 +5,6 @@
 
 #define CHILD_PROCESSES_COUNT 2
 
-#define SLEEP_TIME 10
-
 int main(void)
 {
     pid_t child_pids[CHILD_PROCESSES_COUNT];
@@ -15,15 +13,13 @@ int main(void)
     {
         if ((child_pids[i] = fork()) == -1)
         {
-            printf("Аварийное завершение fork\n");
+            perror("Аварийное завершение fork\n");
 
             exit(1);
         }
         else if (child_pids[i] == 0)
         {
             printf("Дочерний процесс: ID: %d, ID предка: %d, ID группы: %d\n", getpid(), getppid(), getpgrp());
-
-            sleep(SLEEP_TIME);
 
             return EXIT_SUCCESS;
         }
@@ -37,7 +33,7 @@ int main(void)
         
         if (waitpid(child_pids[i], &stat_val, 0) == -1)
         {
-            printf("Аварийное завершение waitpid\n");
+            perror("Аварийное завершение waitpid\n");
 
             exit(1);
         }

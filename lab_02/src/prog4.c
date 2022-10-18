@@ -6,8 +6,6 @@
 
 #define CHILD_PROCESSES_COUNT 2
 
-#define SLEEP_TIME 5
-
 #define MAX_MSG_SIZE 50
 
 int main(void)
@@ -29,15 +27,13 @@ int main(void)
     {
         if ((child_pids[i] = fork()) == -1)
         {
-            printf("Аварийное завершение fork\n");
+            perror("Аварийное завершение fork\n");
 
             exit(1);
         }
         else if (child_pids[i] == 0)
         {
             printf("Дочерний процесс: ID: %d, ID предка: %d, ID группы: %d\n", getpid(), getppid(), getpgrp());
-
-            sleep(SLEEP_TIME);
 
             if (i == 0)
                 memcpy(msg, "\nabc\n", 6);
@@ -61,7 +57,7 @@ int main(void)
             
         if (waitpid(child_pids[i], &stat_val, 0) == -1)
         {
-            printf("Аварийное завершение waitpid\n");
+            perror("Аварийное завершение waitpid\n");
 
             exit(1);
         }
