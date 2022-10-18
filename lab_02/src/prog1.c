@@ -8,17 +8,17 @@
 
 int main(void)
 {
+    pid_t child_pids[CHILD_PROCESSES_COUNT];
+
     for (size_t i = 0; i < CHILD_PROCESSES_COUNT; ++i)
     {
-        int child_pid = fork();
-
-        if (child_pid == -1)
+        if ((child_pids[i] = fork()) == -1)
         {
             printf("Аварийное завершение fork\n");
 
             exit(1);
         }
-        else if (child_pid == 0)
+        else if (child_pids[i] == 0)
         {
             printf("Дочерний процесс до блокировки: ID: %d, ID предка: %d, ID группы: %d\n", getpid(), getppid(), getpgrp());
 
@@ -29,7 +29,7 @@ int main(void)
             return EXIT_SUCCESS;
         }
         else
-            printf("Родительский процесс: ID: %d, Group ID: %d, ID дочернего процесса\n", getpid(), getpgrp(), child_pid);
+            printf("Родительский процесс: ID: %d, Group ID: %d, ID дочернего процесса\n", getpid(), getpgrp(), child_pids[i]);
     }
 
     return EXIT_SUCCESS;

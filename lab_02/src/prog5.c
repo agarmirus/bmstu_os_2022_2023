@@ -35,21 +35,19 @@ int main(void)
         exit(1);
     }
 
-    int child_pids[CHILD_PROCESSES_COUNT];
+    pid_t child_pids[CHILD_PROCESSES_COUNT];
 
     char msg[MAX_MSG_SIZE];
 
     for (size_t i = 0; i < CHILD_PROCESSES_COUNT; ++i)
     {
-        int child_pid = fork();
-
-        if (child_pid == -1)
+        if ((child_pids[i] = fork()) == -1)
         {
             printf("Аварийное завершение fork\n");
 
             exit(1);
         }
-        else if (child_pid == 0)
+        else if (child_pids[i] == 0)
         {
             signal(SIGTERM, my_handler);
 
@@ -73,11 +71,7 @@ int main(void)
             return EXIT_SUCCESS;
         }
         else
-        {
-            child_pids[i] = child_pid;
-
-            printf("\nРодительский процесс: ID: %d, Group ID: %d, ID дочернего процесса: %d\n", getpid(), getpgrp(), child_pid);
-        }
+            printf("\nРодительский процесс: ID: %d, Group ID: %d, ID дочернего процесса: %d\n", getpid(), getpgrp(), child_pids[i]);
     }
 
     for (size_t i = 0; i < CHILD_PROCESSES_COUNT; ++i)
