@@ -9,6 +9,8 @@
 
 int main(void)
 {
+    int child_pids[CHILD_PROCESSES_COUNT] = {0};
+    
     for (size_t i = 0; i < CHILD_PROCESSES_COUNT; ++i)
     {
         int child_pid = fork();
@@ -31,7 +33,7 @@ int main(void)
         {
             child_pids[i] = child_pid;
 
-            printf("\nРодительский процесс: ID: %d, Group ID: %d, ID дочернего процесса\n", getpid(), getpgrp(), child_pid);
+            printf("Родительский процесс: ID: %d, Group ID: %d, ID дочернего процесса\n", getpid(), getpgrp(), child_pid);
         }
     }
 

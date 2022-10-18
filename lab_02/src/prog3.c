@@ -43,13 +43,7 @@ int main(void)
         {
             child_pids[i] = child_pid;
 
-            printf("\nРодительский процесс: ID: %d, Group ID: %d, ", getpid(), getpgrp());
-            printf("ID дочерних процессов: ");
-
-            for (size_t j = 0; j <= i; ++j)
-                printf("%d ", child_pids[j]);
-
-            printf("\n");
+            printf("Родительский процесс: ID: %d, Group ID: %d, ID дочернего процесса: %d\n", getpid(), getpgrp(), child_pid);
         }
     }
 
