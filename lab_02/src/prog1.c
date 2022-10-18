@@ -4,54 +4,33 @@
 
 #define CHILD_PROCESSES_COUNT 2
 
-#define SLEEPING_TIME 2
+#define SLEEP_TIME 1
 
 int main(void)
 {
-    int child_pids[CHILD_PROCESSES_COUNT] = {0};
+    pid_t child_pids[CHILD_PROCESSES_COUNT];
 
     for (size_t i = 0; i < CHILD_PROCESSES_COUNT; ++i)
     {
-        int child_pid = fork();
-
-        if (child_pid == -1)
+        if ((child_pids[i] = fork()) == -1)
         {
-            printf("Аварийное завершение fork\n");
+            perror("Аварийное завершение fork\n");
 
-            return EXIT_FAILURE;
+            exit(1);
         }
-        else if (child_pid == 0)
+        else if (child_pids[i] == 0)
         {
-            int pid = getpid();
-            int ppid = getppid();
-            int pgid = getpgrp();
-            
-            printf("Дочерний процесс до блокировки: ID: %d, ID предка: %d, ID группы: %d\n", pid, ppid, pgid);
+            printf("Дочерний процесс до блокировки: ID: %d, ID предка: %d, ID группы: %d\n", getpid(), getppid(), getpgrp());
 
-            sleep(SLEEPING_TIME);
+            sleep(SLEEP_TIME);
 
-            pid = getpid();
-            ppid = getppid();
-            pgid = getpgrp();
-
-            printf("Дочерний процесс после блокировки: ID: %d, ID предка: %d, ID группы: %d\n", pid, ppid, pgid);
+            printf("Дочерний процесс после блокировки: ID: %d, ID предка: %d, ID группы: %d\n", getpid(), getppid(), getpgrp());
 
             return EXIT_SUCCESS;
         }
         else
-            child_pids[i] = child_pid;
+            printf("Родительский процесс: ID: %d, Group ID: %d, ID дочернего процесса\n", getpid(), getpgrp(), child_pids[i]);
     }
-
-    int pid = getpid();
-    int pgid = getpgrp();
-
-    printf("Родительский процесс: ID: %d, Group ID: %d, ", pid, pgid);
-    printf("ID дочерних процессов: ");
-
-    for (size_t i = 0; i < CHILD_PROCESSES_COUNT; ++i)
-        printf("%d, ", child_pids[i]);
-
-    printf("\n");
 
     return EXIT_SUCCESS;
 }

@@ -7,54 +7,44 @@
 
 int main(void)
 {
-    int child_pids[CHILD_PROCESSES_COUNT] = {0};
+    pid_t child_pids[CHILD_PROCESSES_COUNT];
 
     for (size_t i = 0; i < CHILD_PROCESSES_COUNT; ++i)
     {
-        int new_pid = fork();
-
-        if (new_pid == -1)
+        if ((child_pids[i] = fork()) == -1)
         {
-            printf("Аварийное завершение fork\n");
+            perror("Аварийное завершение fork\n");
 
-            return EXIT_FAILURE;
+            exit(1);
         }
-        else if (new_pid == 0)
+        else if (child_pids[i] == 0)
         {
-            int pid = getpid();
-            int ppid = getppid();
-            int pgid = getpgrp();
-
-            printf("Дочерний процесс: ID: %d, ID предка: %d, ID группы: %d\n", pid, ppid, pgid);
+            printf("Дочерний процесс: ID: %d, ID предка: %d, ID группы: %d\n", getpid(), getppid(), getpgrp());
 
             return EXIT_SUCCESS;
         }
         else
-        {
-            int stat_val = 0;
-            int child_pid = wait(&stat_val);
-
-            child_pids[i] = child_pid;
-
-            if (WIFEXITED(stat_val))
-                printf("Дочерний процесс (ID %d) завершил свою работу (код завершения: %d)\n", child_pid, WEXITSTATUS(stat_val));
-            else if (WIFSIGNALED(stat_val))
-                printf("Дочерний процесс (ID %d) завершился неперехватываемым сигналом (номер сигнала: %d)\n", child_pid, WTERMSIG(stat_val));
-            else if (WIFSTOPPED(stat_val))
-                printf("Дочерний процесс (ID %d) остановился (номер сигнала: %d)\n", child_pid, WSTOPSIG(stat_val));
-        }
+            printf("Родительский процесс: ID: %d, Group ID: %d, ID дочернего процесса\n", getpid(), getpgrp(), child_pids[i]);
     }
 
-    int pid = getpid();
-    int pgid = getpgrp();
-
-    printf("Родительский процесс: ID: %d, Group ID: %d, ", pid, pgid);
-    printf("ID дочерних процессов: ");
-
     for (size_t i = 0; i < CHILD_PROCESSES_COUNT; ++i)
-        printf("%d ", child_pids[i]);
+    {
+        int stat_val = 0;
+        
+        if (waitpid(child_pids[i], &stat_val, 0) == -1)
+        {
+            perror("Аварийное завершение waitpid\n");
 
-    printf("\n");
+            exit(1);
+        }
+
+        if (WIFEXITED(stat_val))
+            printf("Дочерний процесс (ID %d) завершил свою работу (код завершения: %d)\n", child_pids[i], WEXITSTATUS(stat_val));
+        else if (WIFSIGNALED(stat_val))
+            printf("Дочерний процесс (ID %d) завершился: получен сигнал %d\n", child_pids[i], WTERMSIG(stat_val));
+        else if (WIFSTOPPED(stat_val))
+            printf("Дочерний процесс (ID %d) остановился: получен сигнал %d\n", child_pids[i], WSTOPSIG(stat_val));
+    }
 
     return EXIT_SUCCESS;
 }
