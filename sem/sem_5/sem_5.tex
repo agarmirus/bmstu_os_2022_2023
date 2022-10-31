@@ -1,0 +1,181 @@
+\documentclass[a4paper, 12pt]{report}
+
+\usepackage[T2A]{fontenc}
+\usepackage[utf8x]{inputenc}
+\usepackage[english,russian]{babel}
+\usepackage{amssymb,amsfonts,amsmath,mathtext,cite,enumerate,float}
+\usepackage{pgfplots}
+\usepackage{graphicx}
+\usepackage{tocloft}
+\usepackage{listings}
+\usepackage[labelsep=period]{caption}
+
+\makeatletter
+\renewcommand{\@biblabel}[1]{#1.}
+\makeatother
+
+\usepackage{titlesec}
+
+\usepackage{geometry}
+\geometry{left=3cm}
+\geometry{right=1cm}
+\geometry{top=2cm}
+\geometry{bottom=2cm}
+
+\renewcommand{\theenumi}{\arabic{enumi}}
+\renewcommand{\labelenumi}{\arabic{enumi}}
+\renewcommand{\theenumii}{.\arabic{enumii}}
+\renewcommand{\labelenumii}{\arabic{enumi}.\arabic{enumii}.}
+\renewcommand{\theenumiii}{.\arabic{enumiii}}
+\renewcommand{\labelenumiii}{\arabic{enumi}.\arabic{enumii}.\arabic{enumiii}.}
+
+\renewcommand{\cftchapleader}{\cftdotfill{\cftdotsep}} % for chapters
+
+\usepackage{indentfirst}
+
+\titleformat{\chapter}[hang]{\Huge\bfseries}{\thechapter.}{1ex}{\Huge\bfseries}
+
+\graphicspath{{images/}}%путь к рисункам
+
+\newcommand{\floor}[1]{\lfloor #1 \rfloor}
+
+\lstset{ %
+	language=caml,                 % выбор языка для подсветки (здесь это С)
+	basicstyle=\small\sffamily, % размер и начертание шрифта для подсветки кода
+	numbers=left,               % где поставить нумерацию строк (слева\справа)
+	numberstyle=\tiny,           % размер шрифта для номеров строк
+	stepnumber=1,                   % размер шага между двумя номерами строк
+	numbersep=5pt,                % как далеко отстоят номера строк от подсвечиваемого кода
+	showspaces=false,            % показывать или нет пробелы специальными отступами
+	showstringspaces=false,      % показывать или нет пробелы в строках
+	showtabs=false,             % показывать или нет табуляцию в строках
+	frame=single,              % рисовать рамку вокруг кода
+	tabsize=2,                 % размер табуляции по умолчанию равен 2 пробелам
+	captionpos=t,              % позиция заголовка вверху [t] или внизу [b] 
+	breaklines=true,           % автоматически переносить строки (да\нет)
+	breakatwhitespace=false, % переносить строки только если есть пробел
+	escapeinside={\#*}{*)}   % если нужно добавить комментарии в коде
+}
+
+\pgfplotsset{width=0.85\linewidth, height=0.5\columnwidth}
+
+\frenchspacing
+
+\begin{document}
+	\section*{Inter Process Communication}
+	
+	Возникновение двух коммерчески значимых линий: System5 и UNIX BSD. Они были приватизированы фирмами. В результате возникла ситуация: ПО для System5 нельзя было выполнять в UNIX BSD и наоборот. То есть, поскольку данные системы стали лицензионными, разрабам пришлось покупать лицензии. Возникла некоторая монополия. Пишут, что сообщество программистов обратилось с идеей создания станадарта, но все равно: POSIX - государственный стандарт.
+	
+	POSIX (Portable Operating System Interface for UNIX) перечисля более 1000 системных вызовов, обеспечивая тем самым переносимость ПО.
+	
+	!!! POSIX оговаривает только системные вызовы. Структура ядра и его функции не оговорены.
+	
+	\textbf{Факт:} IBM, когда разрабатывалась серия машин IBM360, разделило стоимость <<харда>> и <<софта>>. В это же время в СССР была другая тенденция: поднять цену. А у <<капиталюг>> - наоборот. Почему? На самом деле на рынке важно количество продаж.
+	
+	FIPS (Federal Information Processing Standard) - [кем разработан]
+	
+	POSIX.1 был разработан в 1988 году. Потом POSIX.2, но этого было все равно мало.
+	
+	В Европе был разработан стандарт X/Open.
+	
+	Это важно для нас, так как рынок ПО получил определенную свободу. Все это позволяет более эффективно разрабатывать ПО, привелкать больше людей к разработке.
+	
+	Inter Process Communication System5 включает в себя: сигналы, семафоры, программные каналы (им. и неим.), очереди сообщений, сегменты разделяемой памяти. Есть еще RPC [...].
+	
+	\section*{Сигналы}
+	
+	Сигналы информируют процессы и группы процессов.
+	
+	Сигнал - это программное средство информированния процессов о событиях, которые могут происходить внутри процессов (\textbf{синхронные} события) и  вне процессов (\textbf{ассинхронные} события).
+	
+	Все процессы, которые выполняются в системе, являются ассинхронными (выполняются с собственной скоростью независимо от того, как выполняются другие процессы).
+	
+	Как правило, получение некоторым процессом сигнала указывает ему завершить свое выполнение. Реакция процесса на получаемый сигнал зависит от того, как процесс определяет свою реакцию на получаемый сигнал: проигнорировать, реагировать на получаемый сигнал по умолчанию (так, как определено в системе) или  определить собственную реакцию на получаемый сигнал (для этого в коде процесса должен быть написан собственный обработчик сигнала).
+	
+	В классическом UNIX не могло быть больше 20 сигналов.
+	
+	\begin{lstlisting}
+#define NSIG 20
+#define SIGHUP 1
+#define SIGINT 2
+...
+#define SIGKILL 9
+...
+#define SIGSEGV 11
+#define SIGSYS 12
+#define SIGPIPE 13
+#define SIGALARM 14
+#define SIGTERM 15
+#define SIGUSR1 16
+#define SIGUSR2 17
+#define SIGCLD 18
+#define SIGPWR 19
+	\end{lstlisting}
+	
+	\begin{itemize}
+		\item SIGHUP - сигнал разрыва с терминалом
+		\item SIGINT - CTRL+C (завершение процесса)
+		\item SIGKILL - уничтожение процесса системным вызовом kill
+		\item SIGSEGV - нарушение сегментации (выход за пределы сегмента)
+		\item SIGSYS - ошибка выполнения системного вызова
+		\item SIGPIPE - запись в неименованный программный канал есть, чтения - нет
+		\item SIGALARM - сигнал побудки
+		\item SIGTERM
+		\item SIGUSR1, SIGUSR2
+		\item SIGCLD (в Linux - SIGCHLD) - сопровождает завершение процесса потомка
+		\item SIGPWR - отключение питания (Для сохранения своей работоспособности ОС выполняет ряд действий: сохраняет важнейшие данные. При этом сигнал может перехватываться приложением)
+	\end{itemize}
+
+	О нарушениии сегментации: [картинка из методички про fork]. А в классическом UNIX было сегментированное управление памятью (???).
+	
+	Средством посылки сигналов в ОС UNIX являются два системных вызова: kill и signal.
+	
+	\subsection*{Системный вызов kill}
+
+	\begin{lstlisting}
+int kill(int pid, int sig);
+	\end{lstlisting}
+	\begin{lstlisting}
+kill(getpid(), SIGALARM);
+	\end{lstlisting}
+	
+	Сигнал побудки будет послан процессу, вызвавшему kill.
+	
+	!!! Для винды основным документом является MSDN. Для Linux - мануал.
+	
+	Если параметр $pid \le 1$, то сигнал будет послан группе процессов: если 0, то всем процессам с идентификатором группы, совпадающим с идентификатором группы процесса, который вызвал kill; если -1, то sig будет послан процессам, которые имеют тот же uid, что и процесс, вызвавший kill и т.д.
+	
+	\subsection*{Системный вызов signal}
+	
+	\begin{lstlisting}
+void (*signal(int sig, void (*handler)(int)))(int);
+	\end{lstlisting}
+
+	signal не входит в POSIX, но входит в ANSI C. Поэтому signal не рекомендуется использовать в переносимых системах (аналог - sigaction).
+	
+	\begin{lstlisting}
+#include <signal>
+
+int main()
+{
+	void (*old_handler)(int) = signal(SIGINT, SIG_IGN);
+	...
+	signal(SIGINT, old_handler);
+	...
+}
+	\end{lstlisting}
+
+	\subsection*{sigaction}
+	
+	\begin{lstlisting}
+int sigaction(int sig_numb, struct sigaction *action, struct sigaction *old_action);
+	\end{lstlisting}
+
+	В POSIX имеется два системных вызова: sigsetjump и siglongjmp [что делают].
+	
+	\section*{Программные каналы}
+	
+	mknod создает именованный программный канал. pipe - неименованный (не имеют имени, но имеют дескриптор struct inode).
+	
+	Именованным программным каналом может пользоваться программа, которая знает его имя [кажется, я написал не очень грамотно].
+\end{document}
