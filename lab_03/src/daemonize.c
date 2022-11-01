@@ -5,21 +5,44 @@ void daemonize(const char *cmd)
     // Сброс маску режимов создания файлов
     umask(0);
     // Создаем дочерний процесс и завершаем родительский
-    if ((pid_t child_pid = fork()) == -1)
-        err_quit("%s: cannot fork", cmd);
+    pid_t child_pid;
+    if ((child_pid = fork()) == -1)
+    {
+        perror("Cannot fork");
+        exit(1);
+    }
     else if (child_pid > 0)
         exit(0);
     // Создаем новую сессию
     if (setsid() == -1)
-        err_quit("%s: cannot create new session", cmd);
+    {
+        perror("Cannot create new session");
+        exit(1);
+    }
+    // Устанавливаем реакцию процесса на сигнал SIGHUB
+    struct sigaction sa;
+    sa.sa_handler = SIG_IGN;
+    sigemptyset(&sa.sa_mask);
+    sa.sa_flags = 0;
+    if (sigaction(SIGHUP, &sa, NULL) == -1)
+    {
+        perror("Cannot ignore SIGHUB signal");
+        exit(1);
+    }
     // Делаем корневой каталог текущим рабочим каталогом
     if (chdir("/") == -1)
-        err_quit("%s: cannot change directory", cmd);
+    {
+        perror("Cannot change directory");
+        exit(1);
+    }
     // Получаем максимальный номер дескриптора файла
     struct rlimit rl;
     if (getrlimit(RLIMIT_NOFILE, &rl) == -1)
-        err_quit("%s: cannot get max descriptor number", cmd);
-    if (rl.rlim_max == RLIMIT_INFINITY)
+    {
+        perror("Cannot get max descriptor number");
+        exit(1);
+    }
+    if (rl.rlim_max == RLIM_INFINITY)
         rl.rlim_max = 1024;
     // Закрываем все открытые файлы, в том числе файлы с дескрипторами 0, 1 и 2
     for (int i = 0; i < rl.rlim_max; ++i)
