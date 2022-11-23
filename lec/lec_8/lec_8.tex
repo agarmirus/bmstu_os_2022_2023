@@ -1,0 +1,120 @@
+\documentclass[a4paper, 12pt]{report}
+
+\usepackage[T2A]{fontenc}
+\usepackage[utf8x]{inputenc}
+\usepackage[english,russian]{babel}
+\usepackage{amssymb,amsfonts,amsmath,mathtext,cite,enumerate,float}
+\usepackage{pgfplots}
+\usepackage{graphicx}
+\usepackage{tocloft}
+\usepackage{listings}
+\usepackage[labelsep=period]{caption}
+
+\makeatletter
+\renewcommand{\@biblabel}[1]{#1.}
+\makeatother
+
+\usepackage{titlesec}
+
+\usepackage{geometry}
+\geometry{left=3cm}
+\geometry{right=1cm}
+\geometry{top=2cm}
+\geometry{bottom=2cm}
+
+\renewcommand{\theenumi}{\arabic{enumi}}
+\renewcommand{\labelenumi}{\arabic{enumi}}
+\renewcommand{\theenumii}{.\arabic{enumii}}
+\renewcommand{\labelenumii}{\arabic{enumi}.\arabic{enumii}.}
+\renewcommand{\theenumiii}{.\arabic{enumiii}}
+\renewcommand{\labelenumiii}{\arabic{enumi}.\arabic{enumii}.\arabic{enumiii}.}
+
+\renewcommand{\cftchapleader}{\cftdotfill{\cftdotsep}} % for chapters
+
+\usepackage{indentfirst}
+
+\titleformat{\chapter}[hang]{\Huge\bfseries}{\thechapter.}{1ex}{\Huge\bfseries}
+
+\graphicspath{{images/}}%путь к рисункам
+
+\newcommand{\floor}[1]{\lfloor #1 \rfloor}
+
+\lstset{ %
+	language=caml,                 % выбор языка для подсветки (здесь это С)
+	basicstyle=\small\sffamily, % размер и начертание шрифта для подсветки кода
+	numbers=left,               % где поставить нумерацию строк (слева\справа)
+	numberstyle=\tiny,           % размер шрифта для номеров строк
+	stepnumber=1,                   % размер шага между двумя номерами строк
+	numbersep=5pt,                % как далеко отстоят номера строк от подсвечиваемого кода
+	showspaces=false,            % показывать или нет пробелы специальными отступами
+	showstringspaces=false,      % показывать или нет пробелы в строках
+	showtabs=false,             % показывать или нет табуляцию в строках
+	frame=single,              % рисовать рамку вокруг кода
+	tabsize=2,                 % размер табуляции по умолчанию равен 2 пробелам
+	captionpos=t,              % позиция заголовка вверху [t] или внизу [b] 
+	breaklines=true,           % автоматически переносить строки (да\нет)
+	breakatwhitespace=false, % переносить строки только если есть пробел
+	escapeinside={\#*}{*)}   % если нужно добавить комментарии в коде
+}
+
+\pgfplotsset{width=0.85\linewidth, height=0.5\columnwidth}
+
+\frenchspacing
+
+\begin{document}
+	[картинка]
+	
+	Традиционно, в UNIX ведется подсчет реального времени и времени с момента включения системы (по крайней мере, так было раньше).
+	
+	\section*{Что же определяется как время?}
+	
+	Любая развитая страна имеет службу точного времени. Этим занимаются специальные лаборатории. Момент подъема солнца на максимальную высоту - солнечный переход. Минимальный интервал между солнечными переходами - солнечный день. Была введена солнечная секунда (mean solar second).
+	
+	В 1948 году были изобретены атомные часы. На основе средней солнечной секунды было определено, что секунда - это время, за которое Цезий-133 совершает 9192631770 переходов.
+	
+	Самой большой объем программирования осуществляется для систем реального времени.
+	
+	Современные атомные часы работают на тулии. В России часы на тулии есть в Институте имени Лебедева.
+	
+	Значения точных времен усредняется и формируется International Atomic Time (TAI).
+	
+	Солнечный день в настоящее время изменяется, а солнечная секунда остается - возникают расхождения. Чтобы такого не возникало, было решено использовать т.н. потерянные секунды (если разница возрастает до 800 мс). Все компьютеры, в которых принимаются значения точного времени, должны подстраиваться.
+	
+	Universal Coordinated Time (UTC).
+	
+	[...]
+	
+	Алгоритмы:
+	
+	\begin{itemize}
+		\item Кристиана;
+		\item Беркли;
+		\item Усредняющие;
+	\end{itemize}
+
+	При взаимодействии процессов важным моментом является обеспечение правильного порядка выполнения процессов - обеспечение прицинно-следственной связи (<<случилось до - случилось после>>). В соответствии с этим был предложен алгоритм Лампорта (алгоритм логических часов Лампорта).
+	
+	[картинка]
+	
+	Нарушается отношение, так как время отправки отличается от времени приема сообщения. Поэтому был предложен алгоритм Лампорта: [...]
+	
+	\section*{Алгоритмы взаимоисключения в распределенных системах}
+	
+	\begin{itemize}
+		\item Централизованный алгоритм (алгоритм забияки) (самый надежный, если дополнен выбором нового координатора)
+		
+		Существует процесс-координатор, который координирует работой процессов. [...]
+		
+		\item Распределенный
+		
+		[...]
+		
+		\item Token Ring
+	\end{itemize}
+
+	\section*{Удаленный вызов процедур}
+	
+	[...]
+	
+	[картинка]
+\end{document}

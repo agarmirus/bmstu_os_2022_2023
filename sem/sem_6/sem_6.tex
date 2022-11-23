@@ -1,0 +1,208 @@
+\documentclass[a4paper, 12pt]{report}
+
+\usepackage[T2A]{fontenc}
+\usepackage[utf8x]{inputenc}
+\usepackage[english,russian]{babel}
+\usepackage{amssymb,amsfonts,amsmath,mathtext,cite,enumerate,float}
+\usepackage{pgfplots}
+\usepackage{graphicx}
+\usepackage{tocloft}
+\usepackage{listings}
+\usepackage[labelsep=period]{caption}
+
+\makeatletter
+\renewcommand{\@biblabel}[1]{#1.}
+\makeatother
+
+\usepackage{titlesec}
+\titlespacing{\chapter}{0pt}{-\baselineskip}{\baselineskip}
+\titleformat{\section}{\bfseries}{\thesection}{0.5 em}{}
+\titlespacing*{\section}{0 pt}{\baselineskip}{\baselineskip}
+\titlespacing*{\subsection}{0 pt}{\baselineskip}{\baselineskip}
+
+\usepackage{geometry}
+\geometry{left=2cm}
+\geometry{right=1cm}
+\geometry{top=2cm}
+\geometry{bottom=2cm}
+
+\usepackage{setspace}
+\onehalfspacing
+
+\renewcommand{\theenumi}{\arabic{enumi}}
+\renewcommand{\labelenumi}{\arabic{enumi}}
+\renewcommand{\theenumii}{.\arabic{enumii}}
+\renewcommand{\labelenumii}{\arabic{enumi}.\arabic{enumii}.}
+\renewcommand{\theenumiii}{.\arabic{enumiii}}
+\renewcommand{\labelenumiii}{\arabic{enumi}.\arabic{enumii}.\arabic{enumiii}.}
+
+\renewcommand{\cftchapleader}{\cftdotfill{\cftdotsep}} % for chapters
+
+\renewcommand\bibname{Список использованных источников}
+
+\captionsetup[table]{justification=raggedright} \captionsetup[figure]{justification=centering,labelsep=endash}
+\DeclareCaptionLabelSeparator{dash}{~---~}
+\captionsetup{labelsep=dash}
+
+\usepackage{indentfirst}
+
+\titleformat{\chapter}[hang]{\Huge\bfseries}{\thechapter}{1ex}{\Huge\bfseries}
+
+\graphicspath{{images/}}%путь к рисункам
+
+\newcommand{\floor}[1]{\lfloor #1 \rfloor}
+
+\lstset{ %
+	language=caml,                 % выбор языка для подсветки (здесь это С)
+	basicstyle=\small\sffamily, % размер и начертание шрифта для подсветки кода
+	numbers=left,               % где поставить нумерацию строк (слева\справа)
+	numberstyle=\tiny,           % размер шрифта для номеров строк
+	stepnumber=1,                   % размер шага между двумя номерами строк
+	numbersep=5pt,                % как далеко отстоят номера строк от подсвечиваемого кода
+	showspaces=false,            % показывать или нет пробелы специальными отступами
+	showstringspaces=false,      % показывать или нет пробелы в строках
+	showtabs=false,             % показывать или нет табуляцию в строках
+	frame=single,              % рисовать рамку вокруг кода
+	tabsize=2,                 % размер табуляции по умолчанию равен 2 пробелам
+	captionpos=t,              % позиция заголовка вверху [t] или внизу [b] 
+	breaklines=true,           % автоматически переносить строки (да\нет)
+	breakatwhitespace=false, % переносить строки только если есть пробел
+	escapeinside={\#*}{*)}   % если нужно добавить комментарии в коде
+}
+
+\pgfplotsset{width=0.85\linewidth, height=0.5\columnwidth}
+
+\frenchspacing
+
+\begin{document}
+	\section*{Средства взаимодействия параллельных процессов}
+	
+	На лекции рассматривались семафоры Дейкстры. Семафор Дейкстры был определен как защещенная положительная переменная, на которой определены две операции, которые он определил как P(S) и V(S).
+	
+	P - захват семафора (декремент). Возможна, если значение семафора больше 0. Если опреацию выполнит ь нельзя, то процесс блокируется на семафоре.
+	
+	V - освобождение семафора (инкремент).
+	
+	P и V не являются эквивалентными понятиями к lock и unlock.
+	
+	Сама идея семафоров родилась на основе суммирования проблем взаимодействия процессов. Особенно - проблема активного ожидания на процессоре. Плата за это - переход в режим ядра (переключение аппаратного контекста минимум два раза) (только система может заблокировать и разблокировать процесс).
+	
+	Для структурирований действия с семафорами, системы поддерживают наборы считающих семафоров. Примеры - на основе задачи об обедающих философов.
+	
+	У семафора нет хозяина: семафор может освободить любой процесс.
+	
+	В ядре UNIX/Linux имеется таблица семафоров.
+	
+	[картинка]
+	
+	В этой таблице содержатся дескрипторы наборов семафоров.
+	
+	Библиотека - <sys/sem.h>.
+	
+	sem\_base - указатель на набор.
+	
+	Информация:
+	
+	\begin{itemize}
+		\item Идентификатор - целое число. Присваивается процессом, который создал набор. Другие процессы по этому идентификатору могут получить дексриптор набора и оперировать этими наборами (!!!).
+		
+		\item UID создателя набора семафоров. Процесс, эффективный UID которого совпадает с UID создателя, может удалять и менять(???) набор.
+		
+		\item Права доступа (user, group, others)
+		
+		\item Количество семафоров в наборе
+		
+		\item Время изменения одного или нескольких семафоров
+		
+		\item Время изменения параметров набора(???)
+		
+		\item Указатель на массив семафоров
+	\end{itemize}
+
+	О каждом семафоре известно:
+	
+	%\begin{enumerate}
+		[...]
+	%\end{enumerate}
+
+	На семафоре выделены следующие системные вызовы:
+	
+	semget() - создание набора семафоров
+	
+	semctl() - изменение параметров семафоров
+	
+	semop() - операция на семафоре
+	
+	[картинка с комментариями]
+	
+	В System V определено три операции.
+	
+	Операции sem\_op = 0 нет у Дейкстры (если семафор захвачен - блокируется процесс; без захвата).
+	
+	sem\_op > 0 - инкремент.
+	
+	На семафорах определены специальные флаги:
+	
+	\begin{itemize}
+		\item IPC\_NOWAIT - [...]. Сделано для того, чтобы избежать блокировки всех процессов, находящихся в очереди для доступа к ресурсам, если захвативший ресурс процесс завершился аварийно или получил сигнал kill. Поскольку kill нельзя перехватить, то процесс не может освободить семафор, и все процессы в очереди буду заблоикрованы.
+		
+		\item SEM\_UNDO - указывает ядру на необходимость отслеживать [...]. При завершении процесса ядро ликвидирует сделанные процессом изменения. Добавлен по той же причине, что и IPC\_NOWAIT.
+	\end{itemize}
+
+	[пример]
+	
+	В данном примере создается набор с идентификатором 100 и количеством семафоров 2. Если удалось создать набор, вызывается sem\_op, в который передается массив структур.
+	
+	Данный пример также демонстрирует, что процесс не обязан освобождать уже захваченный семафор.
+	
+	\section*{Сегменты разделяемой памяти}
+	
+	Это средство передачи информации между процессами.
+	
+	[сопоставление программных каналов и сегментов разделяемой памяти]
+	
+	[таблица сегментов разделяемой памяти]
+	
+	shmget()
+	
+	shmctl()
+	
+	shmat()
+	
+	shmdt()
+	
+	На сегментах не определены методы взаимоисключения. Просто участок памяти. Просто пишем и читаем. Но для того, чтобы обеспечивать монопольный доступ к разделяемой памяти, используются семафор.
+	
+	Пример:
+	
+	\begin{lstlisting}
+#include <string.h>
+#include <sys/shm.h>
+
+int main()
+{
+	int perms = S_IRWXU | S_IRWXG | S_IRWXO;
+	int fd = shmget(100, 1024, IPC_CREAT | perms);
+	if (fd == -1) {perror("shmget"); exit(1);}
+	char *addr = (char *)shmat(fd, 0, 0);
+	if (addr == (char *)-1) {perror("shmat"); exit(1);}
+	strcpy(addr, "aaa");
+	if (shmdt(addr) == -1) perror("shmdt");
+	return 0;
+}
+	\end{lstlisting}
+
+	[прочитать мануал к shmat и объяснить, почему второй аргумент - 0]
+	
+	ЛР:
+	
+	Создать не менее 3 потребителей и 3 производителей (через fork).
+	
+	Не меньше 3 писателей, не меньше 4 читателей.
+	
+	Производители пишут в буфер буквы английского алфавита по порядку. Потребители читают. Пишем с использованием указателей (не через индексы).
+	
+	Читатели и писатели азделяют одну единственную переменную. Писатели инкрементируют ее.
+	
+	Главное показать, что все работает правильно.
+\end{document}
