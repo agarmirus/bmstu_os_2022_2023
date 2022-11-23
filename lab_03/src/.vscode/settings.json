@@ -1,6 +1,0 @@
-{
-    "files.associations": {
-        "fcntl.h": "c",
-        "syslog.h": "c"
-    }
-}
