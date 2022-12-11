@@ -1,4 +1,3 @@
-#include <time.h>
 #include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -12,15 +11,16 @@
 #define FILED_CELLS_SEM 1
 #define BIN_SEM 2
 
-#define BUFFER_ELEMS_COUNT 15
+#define BUFFER_ELEMS_COUNT 5
 
 #define CHILDREN_COUNT 6
 #define PRODUCERS_COUNT 3
 
 typedef struct
 {
-    char *cptr;     // Указатель для потребителя
-    char *pptr;     // Указатель для производителя
+    char *cptr;
+    char *pptr;
+    size_t size;
     char letter;
 } buffer_t;
 
@@ -76,6 +76,9 @@ static int run_producer(buffer_t *shmptr, const int semid)
         printf("Producer (PID %d) wrote: %c\n", getpid(), shmptr->letter);
         ++shmptr->letter;
         ++shmptr->pptr;
+        char *bufptr = (char *)shmptr + sizeof(buffer_t);
+        if (shmptr->pptr >= bufptr + shmptr->size)
+            shmptr->pptr = bufptr;
         if (stop_produce(semid) == -1)
         {
             perror("Cannot stop producer");
@@ -99,6 +102,9 @@ static int run_consumer(buffer_t *shmptr, const int semid)
         }
         printf("Consumer (PID %d) read: %c\n", getpid(), *shmptr->cptr);
         ++shmptr->cptr;
+        char *bufptr = (char *)shmptr + sizeof(buffer_t);
+        if (shmptr->cptr >= bufptr + shmptr->size)
+            shmptr->cptr = bufptr;
         if (stop_consume(semid) == -1)
         {
             perror("Cannot stop producer");
@@ -125,6 +131,7 @@ int main(void)
         exit(1);
     }
     shmptr->cptr = shmptr->pptr = (char *)shmptr + sizeof(buffer_t);
+    shmptr->size = BUFFER_ELEMS_COUNT;
     shmptr->letter = 'a';
     int semid = semget(key, 3, perms | IPC_CREAT);
     if (semid == -1)

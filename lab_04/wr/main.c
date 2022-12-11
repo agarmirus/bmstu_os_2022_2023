@@ -60,54 +60,46 @@ static int stop_write(int semid)
 
 static int run_reader(void *shmptr, const int semid)
 {
-    if (!shmptr)
-    {
-        perror("Invalid shared memory pointer");
-        exit(1);
-    }
+    srand(getpid());
     size_t readings_count = 3; 
     for (size_t i = 0; i < readings_count; ++i)
     {
+        sleep(rand() % 4);
         if (start_read(semid) == -1)
         {
             perror("Cannot start reading");
             exit(1);
         }
         int value = *(int *)shmptr;
-        printf("Reader (PID %d) read: %d", getpid(), value);
+        printf("Reader (PID %d) read: %d\n", getpid(), value);
         if (stop_read(semid) == -1)
         {
             perror("Cannot stop reading");
             exit(1);
         }
-        sleep(rand() % 4);
     }
     return EXIT_SUCCESS;
 }
 
 static int run_writer(void *shmptr, const int semid)
 {
-    if (!shmptr)
-    {
-        perror("Invalid shared memory pointer");
-        exit(1);
-    }
+    srand(getpid());
     size_t writings_count = 3;
     for (size_t i = 0; i < writings_count; ++i)
     {
+        sleep(rand() % 4);
         if (start_write(semid) == -1)
         {
             perror("Cannot start writing");
             exit(1);
         }
         int new_value = ++(*(int*)shmptr);
-        printf("Writer (PID %d) written: %d", getpid(), new_value);
+        printf("Writer (PID %d) wrote: %d\n", getpid(), new_value);
         if (stop_write(semid) == -1)
         {
             perror("Cannot stop writing");
             exit(1);
         }
-        sleep(rand() % 4);
     }
     return EXIT_SUCCESS;
 }
@@ -116,7 +108,7 @@ int main(void)
 {
     key_t key = ftok("/dev/null", IPC_PRIVATE);
     int perms = S_IRWXU | S_IRWXG | S_IRWXO;
-    int shmid = shmget(key, sizeof(int), O_CREAT | perms);
+    int shmid = shmget(key, sizeof(int), perms | IPC_CREAT);
     if (shmid == -1)
     {
         perror("Cannot create shared memory");
@@ -128,7 +120,7 @@ int main(void)
         perror("Cannot get shared memory address");
         exit(1);
     }
-    int semid = semget(key, 5, IPC_CREAT | perms);
+    int semid = semget(key, 5, perms | IPC_CREAT);
     if (semid == -1)
     {
         perror("Cannot create semaphores set");
@@ -138,7 +130,7 @@ int main(void)
     semctl(semid, IS_WRITING_SEM, SETVAL, 0);
     semctl(semid, READERS_COUNT_SEM, SETVAL, 0);
     semctl(semid, WRITERS_COUNT_SEM, SETVAL, 0);
-    semctl(semid, BIN_CR, SETVAL, 0);
+    semctl(semid, BIN_CR, SETVAL, 1);
     pid_t child_pids[CHILDREN_COUNT];
     for (size_t i = 0; i < WRITERS_COUNT; ++i)
     {
@@ -184,13 +176,8 @@ int main(void)
             perror("waitpid error");
             exit(1);
         }
-
-        if (WIFEXITED(status))
-            printf("Child process (PID %d) finished (code: %d)\n", child_pids[i], WEXITSTATUS(status));
-        else if (WIFSIGNALED(status))
-            printf("Child process (PID %d) finished. Signal received: %d\n", child_pids[i], WTERMSIG(status));
-        else if (WIFSTOPPED(status))
-            printf("Child process (PID %d) stopped. Signal received %d\n", child_pids[i], WSTOPSIG(status));
+        if (!WIFEXITED(status))
+            printf("Child process (PID %d) crashed\n", child_pids[i]);
     }
     if (shmdt(shmptr) == -1)
     {
