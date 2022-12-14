@@ -7,67 +7,39 @@
 #include <sys/ipc.h>
 #include <sys/wait.h>
 
-#define EMPTY_CELLS_SEM 0
-#define FILED_CELLS_SEM 1
-#define BIN_SEM 2
+#define EMPTY_CELLS_SEM 0   // Количество пустых ячеек буфера
+#define FILED_CELLS_SEM 1   // Количество заполненных ячеек буфера
+#define BIN_SEM 2           // Бинарный семафор (чтение из буфера или запись в буфер)
 
-#define BUFFER_ELEMS_COUNT 5
-
-#define CHILDREN_COUNT 6
+#define CONSUMERS_COUNT 3
 #define PRODUCERS_COUNT 3
 
 typedef struct
 {
-    char *cptr;
-    char *pptr;
-    size_t size;
+    char *cptr;     // Указатель для потребителя
+    char *pptr;     // Указатель для производителя
     char letter;
+    char buf[];     // Буфер
 } buffer_t;
 
-static int start_produce(const int semid)
+static int run_producer(const int shmid, const int semid)
 {
-    struct sembuf sops[] = {
-        {EMPTY_CELLS_SEM, -1, 0},
-        {BIN_SEM, -1, 0}
-    };
-    return semop(semid, sops, 2);
-}
-
-static int stop_produce(const int semid)
-{
-    struct sembuf sops[] = {
-        {BIN_SEM, 1, 0},
-        {FILED_CELLS_SEM, 1, 0}
-    };
-    return semop(semid, sops, 2);
-}
-
-static int start_consume(const int semid)
-{
-    struct sembuf sops[] = {
-        {FILED_CELLS_SEM, -1, 0},
-        {BIN_SEM, -1, 0}
-    };
-    return semop(semid, sops, 2);
-}
-
-static int stop_consume(int semid)
-{
-    struct sembuf sops[] = {
-        {BIN_SEM, 1, 0},
-        {EMPTY_CELLS_SEM, 1, 0}
-    };
-    return semop(semid, sops, 2);
-}
-
-static int run_producer(buffer_t *shmptr, const int semid)
-{
+    buffer_t *shmptr = shmat(shmid, NULL, 0);
+    if (shmptr == (void *)-1)
+    {
+        perror("Cannot get shared memory address");
+        exit(1);
+    }
     srand(getpid());
     size_t producings_count = 5;
     for (size_t i = 0; i < producings_count; ++i)
     {
         sleep(rand() % 4);
-        if (start_produce(semid) == -1)
+        struct sembuf startsops[] = {
+            {EMPTY_CELLS_SEM, -1, 0},
+            {BIN_SEM, -1, 0}
+        };
+        if (semop(semid, startsops, 2) == -1)
         {
             perror("Cannot start producer");
             exit(1);
@@ -76,49 +48,76 @@ static int run_producer(buffer_t *shmptr, const int semid)
         printf("Producer (PID %d) wrote: %c\n", getpid(), shmptr->letter);
         ++shmptr->letter;
         ++shmptr->pptr;
-        char *bufptr = (char *)shmptr + sizeof(buffer_t);
-        if (shmptr->pptr >= bufptr + shmptr->size)
-            shmptr->pptr = bufptr;
-        if (stop_produce(semid) == -1)
+        struct sembuf stopsops[] = {
+            {BIN_SEM, 1, 0},
+            {FILED_CELLS_SEM, 1, 0}
+        };
+        if (semop(semid, stopsops, 2) == -1)
         {
             perror("Cannot stop producer");
             exit(1);
         }
     }
+    if (shmdt(shmptr) == -1)
+    {
+        perror("shmdt error");
+        exit(1);
+    }
     return EXIT_SUCCESS;
 }
 
-static int run_consumer(buffer_t *shmptr, const int semid)
+static int run_consumer(const int shmid, const int semid)
 {
+    buffer_t *shmptr = shmat(shmid, NULL, 0);
+    if (shmptr == (void *)-1)
+    {
+        perror("Cannot get shared memory address");
+        exit(1);
+    }
     srand(getpid());
     size_t consumings_count = 5;
     for (size_t i = 0; i < consumings_count; ++i)
     {
         sleep(rand() % 4);
-        if (start_consume(semid) == -1)
+        struct sembuf startsops[] = {
+            {FILED_CELLS_SEM, -1, 0},
+            {BIN_SEM, -1, 0}
+        };
+        if (semop(semid, startsops, 2) == -1)
         {
             perror("Cannot start producer");
             exit(1);
         }
         printf("Consumer (PID %d) read: %c\n", getpid(), *shmptr->cptr);
         ++shmptr->cptr;
-        char *bufptr = (char *)shmptr + sizeof(buffer_t);
-        if (shmptr->cptr >= bufptr + shmptr->size)
-            shmptr->cptr = bufptr;
-        if (stop_consume(semid) == -1)
+        struct sembuf stopsops[] = {
+            {BIN_SEM, 1, 0},
+            {EMPTY_CELLS_SEM, 1, 0}
+        };
+        if (semop(semid, stopsops, 2) == -1)
         {
             perror("Cannot stop producer");
             exit(1);
         }
+    }
+    if (shmdt(shmptr) == -1)
+    {
+        perror("shmdt error");
+        exit(1);
     }
     return EXIT_SUCCESS;
 }
 
 int main(void)
 {
-    key_t key = ftok("/dev/null", IPC_PRIVATE);
+    key_t key = ftok("keyfile", IPC_PRIVATE);
+    if (key == -1)
+    {
+        perror("Cannot create key with ftok");
+        exit(1);
+    }
     int perms = S_IRWXU | S_IRWXG | S_IRWXO;
-    int shmid = shmget(key, BUFFER_ELEMS_COUNT * sizeof(char) + sizeof(buffer_t), perms | IPC_CREAT);
+    int shmid = shmget(key, 64, perms | IPC_CREAT);
     if (shmid == -1)
     {
         perror("Cannot create shared memory");
@@ -130,20 +129,24 @@ int main(void)
         perror("Cannot get shared memory address");
         exit(1);
     }
-    shmptr->cptr = shmptr->pptr = (char *)shmptr + sizeof(buffer_t);
-    shmptr->size = BUFFER_ELEMS_COUNT;
+    shmptr->cptr = shmptr->pptr = shmptr->buf;
     shmptr->letter = 'a';
+    if (shmdt(shmptr) == -1)
+    {
+        perror("shmdt error");
+        exit(1);
+    }
     int semid = semget(key, 3, perms | IPC_CREAT);
     if (semid == -1)
     {
         perror("Cannot create semaphores set");
         exit(1);
     }
-    semctl(semid, EMPTY_CELLS_SEM, SETVAL, BUFFER_ELEMS_COUNT);
+    semctl(semid, EMPTY_CELLS_SEM, SETVAL, 64);
     semctl(semid, FILED_CELLS_SEM, SETVAL, 0);
     semctl(semid, BIN_SEM, SETVAL, 1);
-    pid_t child_pids[CHILDREN_COUNT];
-    for (size_t i = 0; i < PRODUCERS_COUNT; ++i)
+    pid_t child_pids[PRODUCERS_COUNT + CONSUMERS_COUNT - 1];
+    for (size_t i = 0; i < PRODUCERS_COUNT - 1; ++i)
     {
         if ((child_pids[i] = fork()) == -1)
         {
@@ -152,16 +155,15 @@ int main(void)
         }
         else if (child_pids[i] == 0)
         {
-            int rc = run_producer(shmptr, semid);
-            if (rc != EXIT_SUCCESS)
+            if (run_producer(shmid, semid) != EXIT_SUCCESS)
             {
-                perror("Reader error");
+                perror("Consumer error");
                 exit(1);
             }
             return EXIT_SUCCESS;
         }
     }
-    for (size_t i = PRODUCERS_COUNT; i < CHILDREN_COUNT; ++i)
+    for (size_t i = PRODUCERS_COUNT - 1; i < PRODUCERS_COUNT + CONSUMERS_COUNT - 1; ++i)
     {
         if ((child_pids[i] = fork()) == -1)
         {
@@ -170,16 +172,20 @@ int main(void)
         }
         else if (child_pids[i] == 0)
         {
-            int rc = run_consumer(shmptr, semid);
-            if (rc != EXIT_SUCCESS)
+            if (run_consumer(shmid, semid) != EXIT_SUCCESS)
             {
-                perror("Writer error");
+                perror("Producer error");
                 exit(1);
             }
             return EXIT_SUCCESS;
         }
     }
-    for (size_t i = 0; i < CHILDREN_COUNT; ++i)
+    if (run_producer(shmid, semid) != EXIT_SUCCESS)
+    {
+        perror("Producer error");
+        exit(1);
+    }
+    for (size_t i = 0; i < PRODUCERS_COUNT + CONSUMERS_COUNT - 1; ++i)
     {
         int status;
         if (waitpid(child_pids[i], &status, 0) == -1)
@@ -189,11 +195,6 @@ int main(void)
         }
         if (!WIFEXITED(status))
             printf("Child process (PID %d) crashed\n", child_pids[i]);
-    }
-    if (shmdt(shmptr) == -1)
-    {
-        perror("shmdt error");
-        exit(1);
     }
     if (shmctl(shmid, IPC_RMID, NULL) == -1)
     {
