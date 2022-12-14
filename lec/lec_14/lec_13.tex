@@ -1,0 +1,163 @@
+\documentclass[a4paper, 14pt]{extreport}
+
+\usepackage[T2A]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[english,russian]{babel}
+\usepackage{amssymb,amsfonts,amsmath,mathtext,cite,enumerate,float}
+\usepackage{pgfplots}
+\usepackage{graphicx}
+\usepackage{tocloft}
+\usepackage{listings}
+\usepackage{caption}
+\usepackage{tempora}
+\usepackage{titlesec}
+\usepackage{setspace}
+\usepackage{geometry}
+\usepackage{indentfirst}
+\usepackage{pdfpages}
+
+\def\labelitemi{-}
+
+\newcommand{\ssr}[1]{\begin{center}
+		\LARGE\bfseries{#1}
+	\end{center} \addcontentsline{toc}{chapter}{#1}  }
+
+\makeatletter
+\renewcommand{\@biblabel}[1]{#1.}
+\makeatother
+
+\titleformat{\chapter}[hang]{\LARGE\bfseries}{\hspace{1.25cm}\thechapter}{1ex}{\LARGE\bfseries}
+\titleformat{\section}[hang]{\Large\bfseries}{\hspace{1.25cm}\thesection}{1ex}{\Large\bfseries}
+\titleformat{name=\section,numberless}[hang]{\Large\bfseries}{\hspace{1.25cm}}{0pt}{\Large\bfseries}
+\titleformat{\subsection}[hang]{\large\bfseries}{\hspace{1.25cm}\thesubsection}{1ex}{\large\bfseries}
+\titlespacing{\chapter}{0pt}{-\baselineskip}{\baselineskip}
+\titlespacing*{\section}{0pt}{\baselineskip}{\baselineskip}
+\titlespacing*{\subsection}{0pt}{\baselineskip}{\baselineskip}
+
+\geometry{left=3cm}
+\geometry{right=15mm}
+\geometry{top=2cm}
+\geometry{bottom=2cm}
+
+\onehalfspacing
+
+\renewcommand{\theenumi}{\arabic{enumi}}
+\renewcommand{\labelenumi}{\arabic{enumi}\text{)}}
+\renewcommand{\theenumii}{.\arabic{enumii}}
+\renewcommand{\labelenumii}{\asbuk{enumii}\text{)}}
+\renewcommand{\theenumiii}{.\arabic{enumiii}}
+\renewcommand{\labelenumiii}{\arabic{enumi}.\arabic{enumii}.\arabic{enumiii}.}
+
+\renewcommand{\cftchapleader}{\cftdotfill{\cftdotsep}}
+
+\captionsetup[figure]{justification=centering,labelsep=endash}
+\captionsetup[table]{labelsep=endash,justification=raggedright,singlelinecheck=off}
+
+\DeclareCaptionLabelSeparator{dash}{~---~}
+\captionsetup{labelsep=dash}
+
+\graphicspath{{images/}}%путь к рисункам
+
+\newcommand{\floor}[1]{\lfloor #1 \rfloor}
+
+\lstset{ %
+	language=caml,                 % выбор языка для подсветки (здесь это С)
+	basicstyle=\small\sffamily, % размер и начертание шрифта для подсветки кода
+	numbers=left,               % где поставить нумерацию строк (слева\справа)
+	numberstyle=\tiny,           % размер шрифта для номеров строк
+	stepnumber=1,                   % размер шага между двумя номерами строк
+	numbersep=5pt,                % как далеко отстоят номера строк от подсвечиваемого кода
+	showspaces=false,            % показывать или нет пробелы специальными отступами
+	showstringspaces=false,      % показывать или нет пробелы в строках
+	showtabs=false,             % показывать или нет табуляцию в строках
+	frame=single,              % рисовать рамку вокруг кода
+	tabsize=2,                 % размер табуляции по умолчанию равен 2 пробелам
+	captionpos=t,              % позиция заголовка вверху [t] или внизу [b] 
+	breaklines=true,           % автоматически переносить строки (да\нет)
+	breakatwhitespace=false, % переносить строки только если есть пробел
+	escapeinside={\#*}{*)}   % если нужно добавить комментарии в коде
+}
+
+\pgfplotsset{width=0.85\linewidth, height=0.5\columnwidth}
+
+\linespread{1.3}
+
+\parindent=1.25cm
+
+\frenchspacing
+
+\begin{document}
+	\chapter{Продолжение предыдущей лекции}
+	
+	Очень важно понимать, что преобразование адресов выполняется на каждой команде, а то и несколько раз, особенно если в команде есть косвенная адресация.
+	
+	[картинка]
+	
+	Преобразование осталось, но изменило систему программирования. Появились адресно-независимые программы (позволило перемещать программы в памяти). Изменилось все.
+	
+	Когда перемещать программу? Два подхода: если в памяти для загрузки не удавалось найти раздела необходимого раздела, и [...].
+	
+	Увеличение размеров ОП привело к росту размеров программ. Таким образом, размещение программы единым сегментом стало затратным.
+	
+	Возникла идея разделения адресного пространства процесса на участки равного размера - страницы. Все страницы программы загружались в ОП. В результате, эта идея реализовывалась (первоначально) через создание таблицы страниц, в которой указывались смещения:
+	
+	[картинка]
+	
+	Сама таблица страниц находится в ОП.
+	
+	Появилось понятие фрейма - страница адресного пространства процесса вставляется в <<рамку>> сегмента.
+	
+	А может ли выполняться программа, которая в памяти находится не полностью? Данный вопрос привел к появлению виртуальной памяти.
+	
+	\chapter{Виртуальной памяти}
+	
+	Существует три схемы управления виртуальной памятью: выделение памяти страницами по запросу; выделение памяти сегментами по запросу; выделение памяти сегментами, поделенными на страницы, по запросу.
+	
+	Запрос возникает, когда процессор обращается к команде или данным, отсутствующим в физической памяти. Запросы реализованы в виде прерываний.
+	
+	\section{Страничная память}
+	
+	Когда процесс создается, первое, что делается, - это выделение страниц процессу. Дальше процесс начинает выполняться команда за командой. Но в какой-то момент процессор обращается к данным или команде, отсутствующим в памяти - возникает страничное прерывание.
+	
+	Чтобы процесс смог продолжить свое выполнение, страница должна быть загружена в память. При этом выполняется преобразование, при котором смещение берется из программы.
+	
+	Для каждого процесса системой выделяется виртуальное адресное пространство.
+	
+	Для того, чтобы загрузить виртуальную таблицу в физическую память, необходимо выполнять преобразования.
+	
+	Для выделения памяти страницами по запросу были предложены три вида: прямое отображение, ассоциативное и ассоциативно-прямое.
+	
+	\begin{enumerate}
+		\item прямое
+		
+		[картинки]
+		\item ассоциативное
+		
+		[картинки]
+		
+		Ассоциативная паять - память регистровая (потому и дорогая). Устроена таким образом, что за один такт происходит сравнение с всеми ключами и поиск нужной страницы. Ключом является смещение.
+		
+		[картинка со схемой совпадения]
+		\item ассоциативно-прямое
+		
+		[картинки]
+		
+		Сначала страница ищется в кэше. Если не найдена, то происходит обращение к таблице страниц. При этом в кэше должны храниться адреса физические адреса, которым были недавние обращения. Должно выполняться замещение, если страница в кэше не найдено. В результате даже небольшой кэш обеспечивает до 98\% эффективных обращений.
+	\end{enumerate}
+
+	[...]
+	
+	\section{Алгоритмы вытеснения страниц}
+	
+	\begin{enumerate}
+		\item Выталкивание случайной страницы
+		
+		Характеризуется малыми накладными расходами. Не является дискриминационным, так как любая страница может быть вытеснена, и вероятность вытеснения у каждой страницы одинаковой. Применяется редко.
+		
+		Может быть вытолкнута частная страница или только что загруженная.
+		
+		\item FIFO
+		
+		Для реализации каждой странице или приписывается временная метка, или организуется связный список страниц типа FIFO. Выталкивается страница, которая дольше всего находится в памяти. Может быть вытолкнута часто используемая страница.
+	\end{enumerate}
+\end{document}
